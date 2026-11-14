@@ -1,0 +1,646 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="color-scheme" content="light" />
+<link rel="icon" href="data:," />
+<title>ご注文 | テーブル 07</title>
+<style>
+  :root{
+    --green:#00a550; --green-dark:#007a33; --green-deep:#00893f;
+    --green-light:#e8f7ee;
+    --red:#e60012; --red-dark:#b91c26;
+    --bg:#e9e9e9; --paper:#ffffff; --ink:#222; --muted:#6b7280;
+    --line:#d8d8d8; --soft:#f5f5f5; --orange:#f39800;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    font-family:"Hiragino Kaku Gothic ProN","Hiragino Sans","Noto Sans JP",system-ui,-apple-system,sans-serif;
+    background:var(--bg);
+    color:var(--ink);
+    -webkit-tap-highlight-color:transparent;
+  }
+  button{font-family:inherit;cursor:pointer;min-height:44px}
+  /* ===== Phone frame ===== */
+  .phone{
+    max-width:440px;margin:0 auto;background:var(--paper);
+    min-height:100dvh;display:flex;flex-direction:column;position:relative;
+    box-shadow:0 0 40px rgba(0,0,0,.18);
+  }
+  @media(min-width:500px){
+    body{padding:20px 0 32px}
+    .phone{min-height:calc(100dvh - 52px);border-radius:20px;overflow:hidden}
+  }
+  /* ===== Top green bar (本物と同じ帯) ===== */
+  .topbar{
+    background:linear-gradient(180deg,#00b259,var(--green-deep));
+    color:#fff;text-align:center;
+    font-size:16.5px;font-weight:800;letter-spacing:.02em;
+    padding:11px 10px;line-height:1.35;
+  }
+  main{flex:1;padding:0 14px 110px}
+  .screen{display:none}
+  .screen.active{display:block;animation:fade .22s ease}
+  @keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+  /* ===== Logo (楕円ロゴ風) ===== */
+  .logo-wrap{display:flex;justify-content:center;padding:26px 0 20px}
+  .logo{
+    border:3px solid var(--green-deep);border-radius:50%;
+    width:238px;height:118px;background:#fff;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    box-shadow:inset 0 0 0 2px #fff, inset 0 0 0 4px rgba(0,137,63,.25);
+    overflow:hidden;position:relative;padding-top:6px;
+  }
+  .logo::after{
+    content:"";position:absolute;left:0;right:0;bottom:0;height:26px;
+    background:var(--green-deep);border-radius:50% 50% 0 0/100% 100% 0 0;
+  }
+  .logo-crest{color:var(--green-deep);margin-bottom:-4px;line-height:0}
+  .logo-name{
+    font-family:"Times New Roman",Times,serif;font-style:italic;font-weight:900;
+    color:var(--red);font-size:41px;line-height:1;letter-spacing:-.01em;
+  }
+  .logo-name .cap{font-size:52px}
+  .logo-sub{
+    color:var(--red);font-size:8.5px;font-weight:700;letter-spacing:.34em;
+    margin-top:3px;z-index:1;
+  }
+  /* ===== Code display (緑枠の1つの箱) ===== */
+  .code-box{
+    border:3px solid var(--green-deep);border-radius:5px;background:#fff;
+    height:62px;display:flex;align-items:center;justify-content:center;
+    font-size:34px;font-weight:800;color:var(--green-dark);
+    letter-spacing:.45em;text-indent:.45em;font-variant-numeric:tabular-nums;
+    margin-bottom:12px;
+  }
+  .code-box .placeholder{
+    font-size:14px;font-weight:700;color:#b6b6b6;letter-spacing:.06em;text-indent:0;
+  }
+  /* ===== Keypad (本物のテンキー) ===== */
+  .keypad{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}
+  .key{
+    border:1.5px solid #a3a3a3;border-radius:10px;
+    background:linear-gradient(180deg,#ffffff 0%,#f4f4f4 55%,#e3e3e3 100%);
+    color:var(--green);font-size:36px;font-weight:700;
+    padding:8px 0;min-height:62px;line-height:1.15;
+    box-shadow:0 1px 2px rgba(0,0,0,.12);
+  }
+  .key:active{background:linear-gradient(180deg,#e8f7ee,#cdeed9)}
+  .key-spacer{visibility:hidden}
+  .key-del{
+    border:1.5px solid var(--green-dark);border-radius:10px;
+    background:linear-gradient(180deg,#19c165,var(--green-deep));
+    color:#fff;font-size:23px;font-weight:800;
+    padding:8px 0;min-height:62px;
+    box-shadow:0 1px 2px rgba(0,0,0,.15);
+  }
+  .key-del:active{background:linear-gradient(180deg,#00a550,#007a33)}
+  /* ===== Bottom tab bar (本物の下部メニュー) ===== */
+  .tabbar{
+    position:absolute;left:0;right:0;bottom:0;z-index:6;
+    background:linear-gradient(180deg,#00b259,var(--green-deep));
+    display:none;grid-template-columns:repeat(5,1fr);gap:6px;
+    padding:7px 7px calc(7px + env(safe-area-inset-bottom));
+  }
+  .tabbar.show{display:grid}
+  .tab{
+    border:2px solid transparent;border-radius:7px;
+    background:linear-gradient(180deg,#ffffff,#e9e9e9);
+    color:var(--green-dark);font-weight:800;font-size:15px;line-height:1.25;
+    padding:7px 0 6px;min-height:52px;position:relative;
+    box-shadow:0 1px 2px rgba(0,0,0,.18);
+  }
+  .tab.active{border-color:var(--orange)}
+  .tab.disabled{color:#a8a8a8}
+  .tab .badge{
+    position:absolute;top:-7px;right:-3px;background:var(--red);color:#fff;
+    font-size:11px;font-weight:900;min-width:20px;height:20px;border-radius:999px;
+    display:none;align-items:center;justify-content:center;padding:0 5px;
+  }
+  .tab .badge.show{display:flex}
+  /* Toast */
+  .toast{
+    position:absolute;left:50%;bottom:96px;transform:translateX(-50%) translateY(8px);
+    background:rgba(20,20,20,.92);color:#fff;font-size:13px;font-weight:700;
+    padding:10px 16px;border-radius:999px;opacity:0;pointer-events:none;
+    transition:opacity .2s,transform .2s;z-index:25;white-space:nowrap;max-width:92%;
+  }
+  .toast.show{opacity:1;transform:translateX(-50%)}
+  /* ===== Guests screen ===== */
+  .guest-title{text-align:center;font-size:19px;font-weight:900;margin:2px 0 4px}
+  .guest-lead{text-align:center;font-size:13px;color:#4b5563;line-height:1.6;margin:0 0 16px}
+  .guest-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:0 0 16px}
+  .guest-btn{
+    border:1.5px solid #a3a3a3;border-radius:10px;
+    background:linear-gradient(180deg,#ffffff 0%,#f4f4f4 55%,#e3e3e3 100%);
+    padding:12px 4px;font-size:28px;font-weight:700;color:var(--green);
+    box-shadow:0 1px 2px rgba(0,0,0,.12);
+  }
+  .guest-btn small{display:block;font-size:11px;font-weight:800;color:var(--green-dark);margin-top:1px}
+  .guest-btn.selected{
+    border-color:var(--green-dark);
+    background:linear-gradient(180deg,#e8f7ee,#cdeed9);color:var(--green-dark);
+    box-shadow:0 0 0 2px rgba(0,165,80,.3);
+  }
+  .btn-primary{
+    width:100%;border:1.5px solid var(--green-dark);border-radius:10px;
+    background:linear-gradient(180deg,#19c165,var(--green-deep));
+    color:#fff;font-size:17px;font-weight:900;padding:13px 16px;
+  }
+  .btn-red{
+    border-color:var(--red-dark);
+    background:linear-gradient(180deg,#f04452,var(--red));
+  }
+  .btn-ghost{
+    width:100%;background:linear-gradient(180deg,#ffffff,#e9e9e9);color:var(--ink);
+    border:1.5px solid #a3a3a3;border-radius:10px;
+    font-size:15px;font-weight:800;padding:12px 16px;
+  }
+  .notice{
+    background:#fffbeb;border:1px solid #fde68a;border-radius:10px;
+    padding:10px 12px;font-size:12.5px;line-height:1.6;color:#92400e;margin-top:14px;
+  }
+  /* ===== Found item ===== */
+  .found{
+    margin-top:16px;border:2.5px solid var(--green-deep);border-radius:10px;
+    overflow:hidden;display:none;background:#fff;
+  }
+  .found.show{display:block;animation:fade .2s ease}
+  .found-head{background:var(--green-light);padding:9px 14px;display:flex;justify-content:space-between;gap:10px;align-items:center;border-bottom:1px solid #cdeed9}
+  .found-code{font-size:12px;font-weight:800;color:var(--green-dark);letter-spacing:.05em}
+  .found-price{font-weight:900;font-size:18px}
+  .found-body{padding:12px 14px}
+  .found-name{font-size:18px;font-weight:900;line-height:1.3}
+  .found-desc{font-size:12.5px;color:var(--muted);line-height:1.5;margin-top:4px}
+  .qty-row{display:flex;align-items:center;gap:12px;margin-top:14px}
+  .qty-btn{
+    width:44px;height:44px;border-radius:50%;border:1.5px solid #a3a3a3;
+    background:linear-gradient(180deg,#ffffff,#e9e9e9);
+    font-size:22px;font-weight:900;line-height:1;color:var(--green-dark);
+  }
+  .qty-num{font-size:22px;font-weight:900;min-width:28px;text-align:center}
+  .add-btn{
+    flex:1;border:1.5px solid var(--green-dark);border-radius:999px;
+    background:linear-gradient(180deg,#19c165,var(--green-deep));
+    color:#fff;font-weight:900;font-size:14px;padding:12px 8px;
+  }
+  .notfound{
+    margin-top:16px;display:none;background:#fef2f2;border:1px solid #fecaca;color:#991b1b;
+    border-radius:10px;padding:12px;font-size:13px;line-height:1.6;font-weight:700;
+  }
+  .notfound.show{display:block}
+  /* Menu reference */
+  details.menu-ref{margin-top:20px;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+  details.menu-ref summary{
+    padding:13px 14px;font-weight:900;font-size:14px;background:var(--soft);cursor:pointer;min-height:44px;
+  }
+  .menu-list{padding:6px 0}
+  .menu-row{
+    display:flex;justify-content:space-between;gap:10px;width:100%;text-align:left;
+    background:#fff;border:none;border-bottom:1px solid #f3f4f6;padding:11px 14px;min-height:44px;align-items:center;
+  }
+  .menu-row:last-child{border-bottom:none}
+  .menu-row:active{background:var(--green-light)}
+  .menu-code{font-family:ui-monospace,monospace;font-weight:800;color:var(--green-dark);background:var(--green-light);padding:3px 7px;border-radius:6px;font-size:13px;white-space:nowrap}
+  .menu-name{flex:1;font-size:14px;font-weight:700}
+  .menu-price{font-size:13px;font-weight:800;color:#374151;white-space:nowrap}
+  /* ===== Cart sheet ===== */
+  .sheet{
+    position:absolute;inset:0;background:rgba(0,0,0,.48);display:none;z-index:20;align-items:flex-end;
+  }
+  .sheet.show{display:flex}
+  .sheet-box{background:#fff;width:100%;max-height:88%;overflow:auto;border-radius:18px 18px 0 0;padding:18px 16px 20px;animation:up .25s ease}
+  @keyframes up{from{transform:translateY(16px);opacity:.6}to{transform:none;opacity:1}}
+  .sheet-box h3{margin:0 0 4px;font-size:18px;font-weight:900}
+  .cart-item{display:flex;gap:10px;padding:11px 0;border-bottom:1px solid #f3f4f6;align-items:center}
+  .cart-item-main{flex:1}
+  .cart-item-name{font-weight:800;font-size:14px;line-height:1.4}
+  .cart-item-meta{font-size:12px;color:var(--muted)}
+  .cart-item-price{font-weight:900;white-space:nowrap}
+  .remove-btn{background:none;border:none;color:#9ca3af;font-size:20px;padding:8px;min-height:40px;min-width:40px}
+  .sheet-total{display:flex;justify-content:space-between;font-weight:900;font-size:17px;padding:14px 0}
+  .cart-empty{padding:22px 0;text-align:center;color:var(--muted);font-size:14px;font-weight:700}
+  /* ===== Overlays ===== */
+  .overlay{
+    position:absolute;inset:0;background:#fff;display:none;z-index:30;
+    flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:28px 24px;
+  }
+  .overlay.show{display:flex}
+  .overlay h2{font-size:20px;font-weight:900;margin:0 0 6px}
+  .overlay .lead{font-size:13.5px;line-height:1.6;color:#4b5563;margin:0}
+  .spinner{
+    width:54px;height:54px;border-radius:50%;border:5px solid var(--green-light);border-top-color:var(--green);
+    animation:spin .8s linear infinite;margin-bottom:18px;
+  }
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .check-circle{
+    width:84px;height:84px;border-radius:50%;background:var(--green);color:#fff;
+    display:flex;align-items:center;justify-content:center;font-size:44px;font-weight:900;margin-bottom:16px;
+    animation:pop .35s ease;
+  }
+  @keyframes pop{from{transform:scale(.6);opacity:0}to{transform:scale(1);opacity:1}}
+  .progress{width:100%;max-width:280px;height:8px;background:#e5e7eb;border-radius:999px;overflow:hidden;margin-top:18px}
+  .progress i{display:block;height:100%;width:40%;background:var(--green);border-radius:999px;transition:width .4s}
+  /* ===== Failure screen ===== */
+  .fail-hero{background:var(--red);color:#fff;margin:0 -14px;padding:26px 16px 20px;text-align:center}
+  .fail-x{
+    width:78px;height:78px;border-radius:50%;background:#fff;color:var(--red);
+    display:flex;align-items:center;justify-content:center;font-size:42px;font-weight:900;margin:0 auto 12px;
+  }
+  .fail-hero h2{color:#fff;margin:0;font-size:21px;font-weight:900}
+  .error-code{
+    display:inline-block;margin-top:10px;background:rgba(0,0,0,.22);padding:5px 10px;border-radius:999px;
+    font-family:ui-monospace,monospace;font-size:12px;font-weight:800;letter-spacing:.04em;
+  }
+  .fail-card{border:1px solid var(--line);border-radius:12px;padding:14px;margin-top:16px;background:var(--soft)}
+  .fail-card p{margin:0 0 8px;font-size:14px;line-height:1.7}
+  .fail-card p:last-child{margin-bottom:0}
+  .receipt{border:1.5px dashed #d1d5db;border-radius:10px;padding:12px 14px;margin-top:14px;font-size:13px}
+  .receipt-row{display:flex;justify-content:space-between;padding:4px 0}
+  .receipt-row.total{border-top:1px solid var(--line);margin-top:6px;padding-top:8px;font-weight:900}
+  .stamp{
+    display:inline-block;border:3px solid var(--red);color:var(--red);font-weight:900;
+    padding:4px 12px;border-radius:6px;transform:rotate(-4deg);font-size:15px;letter-spacing:.08em;margin-top:14px;
+  }
+  .tiny{font-size:10.5px;color:#9ca3af;line-height:1.5;text-align:center;padding:0 16px 14px}
+  @media(prefers-reduced-motion:reduce){
+    *{animation:none!important;transition:none!important}
+  }
+</style>
+</head>
+<body>
+<div class="phone" id="phone">
+  <div class="topbar" id="topbar">メニューブックから番号を入力してください</div>
+
+  <main>
+    <!-- SCREEN 1: guests -->
+    <section class="screen active" id="screen-guests">
+      <div class="logo-wrap"><div class="logo" aria-label="Saizeriya">
+        <span class="logo-crest"><svg width="30" height="20" viewBox="0 0 30 20" aria-hidden="true"><path d="M15 1 L19 5 L19 10 C19 14 17 16.5 15 18 C13 16.5 11 14 11 10 L11 5 Z" fill="none" stroke="#00893f" stroke-width="1.8"/><path d="M15 5 L15 14 M12 9 L18 9" stroke="#00893f" stroke-width="1.6"/></svg></span>
+        <span class="logo-name"><span class="cap">S</span>aizeriya</span>
+        <span class="logo-sub">RISTORANTE E CAFFÈ</span>
+      </div></div>
+      <h2 class="guest-title">ご利用人数を選んでください</h2>
+      <p class="guest-lead">テーブル 07番 ／ 店内飲食<br>メニューブックを見ながら、番号で注文する方式です。</p>
+      <div class="guest-grid" id="guestGrid">
+        <button class="guest-btn" data-n="1">1<small>名様</small></button>
+        <button class="guest-btn selected" data-n="2">2<small>名様</small></button>
+        <button class="guest-btn" data-n="3">3<small>名様</small></button>
+        <button class="guest-btn" data-n="4">4<small>名様</small></button>
+        <button class="guest-btn" data-n="5">5<small>名様</small></button>
+        <button class="guest-btn" data-n="6">6<small>名様〜</small></button>
+      </div>
+      <button class="btn-primary" id="toOrderBtn">注文をはじめる</button>
+      <div class="notice">💡 このあと、紙のメニューに書かれた<strong>4桁のメニュー番号</strong>を入力して注文します。写真は出ません。それが仕様です。</div>
+    </section>
+
+    <!-- SCREEN 2: ordering (本物そっくりのテンキー画面) -->
+    <section class="screen" id="screen-order">
+      <div class="logo-wrap"><div class="logo" aria-label="Saizeriya">
+        <span class="logo-crest"><svg width="30" height="20" viewBox="0 0 30 20" aria-hidden="true"><path d="M15 1 L19 5 L19 10 C19 14 17 16.5 15 18 C13 16.5 11 14 11 10 L11 5 Z" fill="none" stroke="#00893f" stroke-width="1.8"/><path d="M15 5 L15 14 M12 9 L18 9" stroke="#00893f" stroke-width="1.6"/></svg></span>
+        <span class="logo-name"><span class="cap">S</span>aizeriya</span>
+        <span class="logo-sub">RISTORANTE E CAFFÈ</span>
+      </div></div>
+
+      <div class="code-box" id="codeBox"><span class="placeholder">番号を入力</span></div>
+
+      <div class="keypad" id="keypad">
+        <button class="key" data-k="1">1</button><button class="key" data-k="2">2</button><button class="key" data-k="3">3</button>
+        <button class="key" data-k="4">4</button><button class="key" data-k="5">5</button><button class="key" data-k="6">6</button>
+        <button class="key" data-k="7">7</button><button class="key" data-k="8">8</button><button class="key" data-k="9">9</button>
+        <span class="key key-spacer" aria-hidden="true"></span><button class="key" data-k="0">0</button><button class="key-del" data-k="del">削除</button>
+      </div>
+
+      <div class="found" id="foundBox">
+        <div class="found-head"><span class="found-code" id="foundCode">No. 2101</span><span class="found-price" id="foundPrice">¥320</span></div>
+        <div class="found-body">
+          <div class="found-name" id="foundName">ミラノ風ドリア</div>
+          <div class="found-desc" id="foundDesc"></div>
+          <div class="qty-row">
+            <button class="qty-btn" id="qtyMinus" aria-label="減らす">−</button>
+            <span class="qty-num" id="qtyNum">1</span>
+            <button class="qty-btn" id="qtyPlus" aria-label="増やす">＋</button>
+            <button class="add-btn" id="addBtn">注文かごへ追加</button>
+          </div>
+        </div>
+      </div>
+      <div class="notfound" id="notFound">⚠️ その番号の商品は見つかりませんでした。メニューブックの番号をもう一度確認してください。<br><span style="font-weight:400">例：ミラノ風ドリアは「2101」です。</span></div>
+
+      <details class="menu-ref">
+        <summary>📖 メニュー表（番号一覧）— タップで入力</summary>
+        <div class="menu-list" id="menuList"></div>
+      </details>
+      <p style="font-size:12px;color:var(--muted);line-height:1.6;margin-top:14px">※ 価格は税込です。アレルギー等はスタッフまでお声がけください。</p>
+    </section>
+
+    <!-- SCREEN 3: failure -->
+    <section class="screen" id="screen-fail">
+      <div class="fail-hero">
+        <div class="fail-x">✕</div>
+        <h2>注文に失敗しました</h2>
+        <div><span class="error-code">ERROR: SZ-DUMMY-404</span></div>
+      </div>
+      <div style="text-align:center"><span class="stamp">未送信 ・ 未調理</span></div>
+      <div class="fail-card">
+        <p><strong>ごめんなさい、これはダミーの注文画面です。</strong></p>
+        <p>注文は厨房にもレジにも、どこにも届いていません。お金も取られていません。</p>
+      </div>
+      <div class="receipt" id="failReceipt"></div>
+      <div style="display:grid;gap:10px;margin-top:18px">
+        <button class="btn-primary" id="retryBtn">もう一度、注文ごっこをする</button>
+        <button class="btn-ghost" id="resetBtn">最初からやり直す</button>
+      </div>
+    </section>
+  </main>
+
+  <div class="tiny">※ これはジョーク用のダミーページです。実際の店舗・注文システムとは関係ありません。</div>
+
+  <!-- Bottom tab bar (本物の下部メニュー) -->
+  <nav class="tabbar" id="tabBar" aria-label="注文メニュー">
+    <button class="tab active" id="tabAdd">注文<br>追加</button>
+    <button class="tab" id="tabCart">注文<br>かご<span class="badge" id="cartBadge">0</span></button>
+    <button class="tab" id="tabHistory">注文<br>履歴</button>
+    <button class="tab" id="tabStaff">店員<br>呼出</button>
+    <button class="tab disabled" id="tabPay">会計<br>する</button>
+  </nav>
+
+  <div class="toast" id="toast" role="status"></div>
+
+  <!-- Cart / confirm sheet -->
+  <div class="sheet" id="cartSheet" role="dialog" aria-modal="true" aria-label="注文確認">
+    <div class="sheet-box">
+      <h3>注文内容の確認</h3>
+      <p style="margin:0;font-size:13px;color:var(--muted)" id="sheetGuest">2名様 ・ テーブル07番</p>
+      <div id="cartItems"></div>
+      <div class="sheet-total"><span>合計（税込）</span><span id="sheetTotal">¥0</span></div>
+      <button class="btn-primary btn-red" id="confirmOrderBtn" style="margin-bottom:10px">この内容で注文する</button>
+      <button class="btn-ghost" id="closeCartBtn">もどる（追加する）</button>
+    </div>
+  </div>
+
+  <!-- Processing overlay -->
+  <div class="overlay" id="processingOverlay">
+    <div class="spinner"></div>
+    <h2>注文を送信しています…</h2>
+    <p class="lead">厨房へ送信中です。そのままお待ちください。</p>
+  </div>
+
+  <!-- Fake success overlay -->
+  <div class="overlay" id="successOverlay">
+    <div class="check-circle">✓</div>
+    <h2>注文を受け付けました！</h2>
+    <p class="lead" id="successMeta">注文番号：A-0712<br>ただいま調理中です…</p>
+    <div class="progress"><i id="successProgress"></i></div>
+    <p style="font-size:12px;color:var(--muted);margin-top:10px">出来上がりまで 約10分</p>
+  </div>
+</div>
+
+<script>
+/* ============================================================
+   アクセス解析（GoatCounter）設定
+   ▼▼▼ 解析コードはここ1か所だけ ▼▼▼
+   GoatCounterのサイトコード（例: "halu-dummy"）を入れると有効化。
+   空文字 "" のままなら、解析スクリプトは一切読み込まれません。
+   ============================================================ */
+const GOATCOUNTER_CODE = "halusutadio";
+
+function initAnalytics(){
+  if(!GOATCOUNTER_CODE) return; // 空なら何もしない（読み込みゼロ）
+  var s = document.createElement('script');
+  s.async = true;
+  s.src = 'https://gc.zgo.at/count.js';
+  s.setAttribute('data-goatcounter', 'https://' + GOATCOUNTER_CODE + '.goatcounter.com/count');
+  document.head.appendChild(s);
+}
+function trackGoatCounterEvent(path){
+  if(!GOATCOUNTER_CODE) return; // 空なら送信しない
+  var tries = 0;
+  (function attempt(){
+    if(window.goatcounter && typeof window.goatcounter.count === 'function'){
+      window.goatcounter.count({ path: path, title: path, event: true });
+    } else if(tries++ < 20){
+      setTimeout(attempt, 250); // スクリプト読み込み待ち
+    }
+  })();
+}
+initAnalytics();
+
+/* ================= Menu data ================= */
+var MENU = {
+  '2101':{name:'ミラノ風ドリア',price:320,desc:'お店の代名詞。ターメリックライス＋ミートソース＋ホワイトソース。'},
+  '2108':{name:'焼チーズ ミラノ風ドリア',price:380,desc:'ミラノ風ドリアにとろけるチーズをのせて焼き上げました。'},
+  '2403':{name:'イタリアンハンバーグ',price:530,desc:'デミグラスソースとチーズの、ごはんが進むやつ。'},
+  '2203':{name:'バッファローモッツァレラのマルゲリータピザ',price:420,desc:'トマト・モッツァレラ・バジルの王道ピザ。'},
+  '2303':{name:'ペペロンチーノ',price:320,desc:'にんにくと唐辛子。シンプルで安くて強い。'},
+  '2301':{name:'タラコソースシシリー風',price:420,desc:'タラコの塩気とレモンの爽やかさ。'},
+  '1202':{name:'小エビのサラダ',price:370,desc:'ドレッシングが本職と言われる、あのサラダ。'},
+  '5101':{name:'セットドリンクバー',price:210,desc:'食事とセットで頼むドリンクバー。全員分まとめて頼みがち。'},
+  '3201':{name:'ティラミス クラシコ',price:320,desc:'食後の正解。コーヒーと一緒にどうぞ。'},
+  '1401':{name:'辛味チキン',price:320,desc:'骨付き・スパイシー。ビールにもごはんにも合う。'}
+};
+
+/* ================= State ================= */
+var guests = 2;
+var code = '';
+var currentItem = null;
+var qty = 1;
+var cart = []; // {code,name,price,qty}
+
+var $ = function(id){ return document.getElementById(id); };
+
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(function(s){ s.classList.remove('active'); });
+  $(id).classList.add('active');
+  window.scrollTo(0,0);
+  var phone = $('phone'); if(phone) phone.scrollTop = 0;
+  $('tabBar').classList.toggle('show', id==='screen-order');
+  $('topbar').textContent = (id==='screen-guests')
+    ? 'ご利用人数を入力してください'
+    : 'メニューブックから番号を入力してください';
+}
+
+var toastTimer = null;
+function toast(msg){
+  var t = $('toast'); t.textContent = msg; t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(function(){ t.classList.remove('show'); }, 2200);
+}
+
+/* Guests */
+$('guestGrid').addEventListener('click', function(e){
+  var btn = e.target.closest('.guest-btn'); if(!btn) return;
+  document.querySelectorAll('.guest-btn').forEach(function(b){ b.classList.remove('selected'); });
+  btn.classList.add('selected');
+  guests = parseInt(btn.getAttribute('data-n'),10);
+});
+$('toOrderBtn').addEventListener('click', function(){
+  showScreen('screen-order');
+  updateCartUI();
+});
+
+/* Menu list */
+(function buildMenu(){
+  var list = $('menuList');
+  Object.keys(MENU).forEach(function(c){
+    var m = MENU[c];
+    var b = document.createElement('button');
+    b.className = 'menu-row';
+    b.innerHTML = '<span class="menu-code">'+c+'</span><span class="menu-name"></span><span class="menu-price">¥'+m.price+'</span>';
+    b.querySelector('.menu-name').textContent = m.name;
+    b.addEventListener('click', function(){
+      code = c; qty = 1; renderCode(); lookup();
+      document.querySelector('.menu-ref').removeAttribute('open');
+    });
+    list.appendChild(b);
+  });
+})();
+
+/* Keypad */
+function renderCode(){
+  var box = $('codeBox');
+  if(code){
+    box.textContent = code;
+  } else {
+    box.innerHTML = '<span class="placeholder">番号を入力</span>';
+  }
+}
+$('keypad').addEventListener('click', function(e){
+  var btn = e.target.closest('[data-k]'); if(!btn) return;
+  var k = btn.getAttribute('data-k');
+  if(k==='del'){ code = code.slice(0,-1); hideFound(); }
+  else if(code.length<4){ code += k; }
+  renderCode();
+  if(code.length===4) lookup(); else if(code.length<4) hideFound(false);
+});
+function hideFound(clearNotFound){
+  $('foundBox').classList.remove('show');
+  if(clearNotFound !== false) $('notFound').classList.remove('show');
+  currentItem = null;
+}
+function lookup(){
+  var m = MENU[code];
+  if(m){
+    currentItem = {code:code, name:m.name, price:m.price};
+    qty = 1; $('qtyNum').textContent = '1';
+    $('foundCode').textContent = 'No. ' + code;
+    $('foundName').textContent = m.name;
+    $('foundDesc').textContent = m.desc;
+    $('foundPrice').textContent = '¥' + m.price;
+    $('foundBox').classList.add('show');
+    $('notFound').classList.remove('show');
+  } else {
+    $('foundBox').classList.remove('show');
+    $('notFound').classList.add('show');
+    currentItem = null;
+  }
+}
+$('qtyMinus').addEventListener('click', function(){ if(qty>1) qty--; $('qtyNum').textContent = qty; });
+$('qtyPlus').addEventListener('click', function(){ if(qty<9) qty++; $('qtyNum').textContent = qty; });
+$('addBtn').addEventListener('click', function(){
+  if(!currentItem) return;
+  var ex = null;
+  cart.forEach(function(it){ if(it.code===currentItem.code) ex = it; });
+  if(ex) ex.qty += qty; else cart.push({code:currentItem.code,name:currentItem.name,price:currentItem.price,qty:qty});
+  code=''; renderCode(); hideFound();
+  updateCartUI();
+  toast('注文かごに追加しました');
+});
+
+/* Cart */
+function cartTotal(){ return cart.reduce(function(s,it){ return s + it.price*it.qty; },0); }
+function cartCount(){ return cart.reduce(function(s,it){ return s + it.qty; },0); }
+function updateCartUI(){
+  var badge = $('cartBadge');
+  badge.textContent = cartCount();
+  badge.classList.toggle('show', cart.length>0);
+}
+function renderCart(){
+  $('sheetGuest').textContent = guests + '名様 ・ テーブル07番';
+  var wrap = $('cartItems'); wrap.innerHTML='';
+  if(!cart.length){
+    var empty = document.createElement('div'); empty.className='cart-empty';
+    empty.textContent = '注文かごは空です。番号を入力して商品を追加してください。';
+    wrap.appendChild(empty);
+  }
+  cart.forEach(function(it, idx){
+    var row = document.createElement('div'); row.className='cart-item';
+    row.innerHTML = '<div class="cart-item-main"><div class="cart-item-name"></div><div class="cart-item-meta">No.'+it.code+' ・ ¥'+it.price+' × '+it.qty+'</div></div><div class="cart-item-price">¥'+(it.price*it.qty).toLocaleString()+'</div>';
+    row.querySelector('.cart-item-name').textContent = it.name;
+    var rm = document.createElement('button'); rm.className='remove-btn'; rm.textContent='✕'; rm.setAttribute('aria-label','削除');
+    rm.addEventListener('click', function(){ cart.splice(idx,1); renderCart(); updateCartUI(); });
+    row.appendChild(rm);
+    wrap.appendChild(row);
+  });
+  $('sheetTotal').textContent = '¥' + cartTotal().toLocaleString();
+  $('confirmOrderBtn').style.display = cart.length ? '' : 'none';
+}
+$('closeCartBtn').addEventListener('click', function(){ $('cartSheet').classList.remove('show'); });
+$('cartSheet').addEventListener('click', function(e){ if(e.target===this) this.classList.remove('show'); });
+
+/* Bottom tabs */
+$('tabAdd').addEventListener('click', function(){
+  code=''; renderCode(); hideFound();
+  window.scrollTo(0,0);
+});
+$('tabCart').addEventListener('click', function(){ renderCart(); $('cartSheet').classList.add('show'); });
+$('tabHistory').addEventListener('click', function(){ toast('注文履歴はありません（ダミーです）'); });
+$('tabStaff').addEventListener('click', function(){ toast('店員は来ません。これはダミー画面です'); });
+$('tabPay').addEventListener('click', function(){ toast('会計はできません。これはダミー画面です'); });
+
+/* Order flow: processing -> fake success -> FAILURE */
+$('confirmOrderBtn').addEventListener('click', function(){
+  if(!cart.length) return;
+  $('cartSheet').classList.remove('show');
+  $('tabBar').classList.remove('show');
+  $('processingOverlay').classList.add('show');
+  setTimeout(function(){
+    $('processingOverlay').classList.remove('show');
+    $('successOverlay').classList.add('show');
+    $('successProgress').style.width = '40%';
+    setTimeout(function(){ $('successProgress').style.width = '82%'; }, 500);
+    setTimeout(function(){
+      $('successOverlay').classList.remove('show');
+      showFailure();
+    }, 2300);
+  }, 1700);
+});
+
+function showFailure(){
+  // Receipt of what they *tried* to order
+  var r = $('failReceipt'); r.innerHTML='';
+  cart.forEach(function(it){
+    var row = document.createElement('div'); row.className='receipt-row';
+    var left = document.createElement('span'); left.textContent = it.name + ' × ' + it.qty;
+    var right = document.createElement('span'); right.textContent = '¥' + (it.price*it.qty).toLocaleString();
+    row.appendChild(left); row.appendChild(right); r.appendChild(row);
+  });
+  var tot = document.createElement('div'); tot.className='receipt-row total';
+  tot.innerHTML = '<span>合計（支払われません）</span><span>¥' + cartTotal().toLocaleString() + '</span>';
+  r.appendChild(tot);
+  var note = document.createElement('p');
+  note.style.cssText='font-size:11.5px;color:var(--muted);margin:8px 0 0;line-height:1.6';
+  note.textContent = '注文番号：A-0712（無効）／ テーブル07番（架空）／ ' + guests + '名様分';
+  r.appendChild(note);
+
+  showScreen('screen-fail');
+
+  /* ★ アクセス解析：失敗画面に到達したらカスタムイベント送信 ★
+     GOATCOUNTER_CODE が空のときは trackGoatCounterEvent 内で何も起きません */
+  trackGoatCounterEvent('order-failed');
+}
+
+$('retryBtn').addEventListener('click', function(){
+  showScreen('screen-order'); updateCartUI();
+});
+$('resetBtn').addEventListener('click', function(){
+  cart = []; code=''; renderCode(); hideFound(); updateCartUI();
+  showScreen('screen-guests');
+});
+
+renderCode();
+updateCartUI();
+</script>
+</body>
+</html>
